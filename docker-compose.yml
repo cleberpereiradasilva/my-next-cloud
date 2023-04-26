@@ -1,0 +1,42 @@
+services:
+  nextcloud:
+    image: nextcloud
+    restart: always
+    links:
+      - postgres_sql
+    networks:
+      - network-nextcloud
+    depends_on:
+      - postgres_sql
+    ports:
+      - 80:80
+      - 8080:8080
+      - 8443:8443
+    environment:
+      - NEXTCLOUD_ADMIN_USER=<YOUR-USERNAME>
+      - NEXTCLOUD_ADMIN_PASSWORD=<YOUR-PASSWORD>
+      - NEXTCLOUD_TRUSTED_DOMAINS=<YOUR-IP-ADRRESS>
+    volumes:
+      - ./cloud/nextcloud:/var/www/html
+      - ./cloud/apps:/var/www/html/custom_apps
+      - ./cloud/config:/var/www/html/config
+      - ./cloud/data:/var/www/html/data
+      - ./cloud/logs:/var/logs
+
+  postgres_sql:
+    image: postgres:14.1-alpine
+    restart: always
+    environment:
+      - POSTGRES_USER=<DATABASE_USER_NAME>
+      - POSTGRES_PASSWORD=<DATABASE_PASSWORD>
+    volumes:
+      - ./cloud/db:/var/lib/postgresql/data
+      - ./create_database.sql:/docker-entrypoint-initdb.d/create_database.sql
+    ports:
+      - 5432:5432
+    networks:
+      - network-nextcloud
+
+networks:
+  network-nextcloud:
+    driver: bridge
